@@ -91,7 +91,9 @@
                                    "description" ""}]
       (cond (= "object" (property-json-schema-partial "type"))
             (if (nil? (property-json-schema-partial "properties"))
-              (throw (ex-info "Found object type without properties defined: " {:property-name property-name}))
+              (throw (ex-info "Found object type without properties defined: " {:property-name property-name
+                                                                                :property property
+                                                                                :schema schema}))
               (assoc base-converted-property
                      "subattributes"
                      (convert-object-properties tap-fs schema (property-json-schema-partial "properties"))))
@@ -209,7 +211,8 @@
   "multiary-type = a property that _may_ have more than one type."
   [tap-fs schema [property-name property-json-schema-partial
                   :as property]]
-  (let [property (if (contains? property-json-schema-partial "$ref")
+  (let [found-anyOf (contains? property-json-schema-partial "anyOf")
+        property (if (contains? property-json-schema-partial "$ref")
                    (let [{:keys [file json-pointer]}
                          (parse-json-schema-reference
                           (property-json-schema-partial "$ref"))
@@ -237,8 +240,12 @@
                                         :schema schema})))
                      [property-name referenced-json-schema-partial])
                    property)]
-    (let [unary-type-properties
-          (property->unary-type-properties property)
+    (let [unary-type-properties (if found-anyOf
+                                  (filter not-empty
+                                          (first (map property->unary-type-properties
+                                                      (map #(conj [property-name] %)
+                                                           (property-json-schema-partial "anyOf")))))
+                                  (property->unary-type-properties property))
 
           converted-unary-type-properties
           (map (partial convert-unary-type tap-fs schema)
