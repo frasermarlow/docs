@@ -12,7 +12,7 @@ The `master` branch is continuously deployed to production using [Netlify](http:
 
 ---
 
-# Contributing
+# Contributin
 
 _"It takes a village (to have excellent documentation)."_ We love listening to our customers and learning about how they're using Stitch. Your contributions can help us ensure we're providing you with the documentation you need to get the most out of Stitch.
 
